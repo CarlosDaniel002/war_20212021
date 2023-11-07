@@ -31,7 +31,6 @@ class _MyAppState extends State<MyApp> {
       initialRoute: '/inicio',
       routes: {
         '/inicio':(context) => ListVivenciasScreen(),
-        // '/age': (context) => form(),
         '/contact':(context) => contact()
       },
     );

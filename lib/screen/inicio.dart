@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:record/record.dart';
 import 'package:war_20212021/services/Vivencia.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:async';
-import 'package:file_picker/file_picker.dart';
 import 'package:audioplayers/audioplayers.dart';
-
 
 class ListVivenciasScreen extends StatefulWidget {
   @override
@@ -49,22 +46,35 @@ class _ListVivenciasScreenState extends State<ListVivenciasScreen> {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => CreateEditVivenciaScreen(),
-            ),
-          ).then((value) => getVivencias());
-        },
-        child: Icon(Icons.add),
-      ),
+    floatingActionButton: Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [ 
+        FloatingActionButton(
+          onPressed: () {
+          Navigator.pushNamed(context, '/contact');
+          },
+          child: Icon(Icons.person), // Cambia el icono según tu necesidad
+        ),
+        SizedBox(height: 16), // Espacio entre los botones
+        FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CreateEditVivenciaScreen(),
+              ),
+            ).then((value) => getVivencias());
+          },
+          child: Icon(Icons.add), // Icono para el segundo botón flotante
+        ),
+      ],
+    )
+    
     );
   }
 }
 
-// Vista para ver los detalles de una vivencia específica
 class DetailsVivenciaScreen extends StatelessWidget {
   final Vivencia vivencia;
 
@@ -82,34 +92,47 @@ class DetailsVivenciaScreen extends StatelessWidget {
           Text('Título: ${vivencia.title}'),
           Text('Descripción: ${vivencia.description}'),
           // Mostrar otros detalles aquí (fecha, imagen, audio, etc.)
+          Text('Descripción: ${vivencia.date}'),
+          Text('Descripción: ${vivencia.photoUrl}'),
+          Text('Descripción: ${vivencia.audioUrl}')
         ],
       ),
     );
   }
 }
 
-// Vista para crear una nueva vivencia
-// Pantalla de Crear/Editar Vivencia
 class CreateEditVivenciaScreen extends StatefulWidget {
   @override
   _CreateEditVivenciaScreenState createState() => _CreateEditVivenciaScreenState();
 }
 
 class _CreateEditVivenciaScreenState extends State<CreateEditVivenciaScreen> {
-  // Declarar controladores de texto y otros elementos del formulario
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
-  DateTime selectedDate = DateTime.now(); // Para seleccionar la fecha
-  final TextEditingController fotoController = TextEditingController();
-  final TextEditingController audioController = TextEditingController();
+  final ImagePicker _picker = ImagePicker();
   final AudioRecorder _audioRecorder = AudioRecorder();
-  String _path = 'storage/emulated/0/Android/data/com.example.war_20209358/files/audio.wav';
-  AudioPlayer _audioPlayer = AudioPlayer();
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  String _imagePath ='';
+  String _audioPath = 'storage/emulated/0/Android/data/com.example.war_20209358/files/audio.wav';
 
-  void _onPressed() async {
-    final hasPermission = await _audioRecorder.hasPermission();
-    if (hasPermission) {
-      final path = await _audioRecorder.start(RecordConfig(), path: _path);
+void _startRecording() async {
+  final hasPermission = await _audioRecorder.hasPermission();
+  if (hasPermission) {
+    _audioPath = 'storage/emulated/0/Android/data/com.example.war_20209358/files/audio.wav';  // Asigna la ruta inicial aquí
+    await _audioRecorder.start(RecordConfig(), path: _audioPath);
+  }
+}
+
+
+  void _stopRecording() async {
+    if (await _audioRecorder.isRecording()) {
+      await _audioRecorder.stop();
+    }
+  }
+
+  void _playAudio() async {
+    if (_audioPath.isNotEmpty) {
+      await _audioPlayer.play("storage/emulated/0/Android/data/" "com.example.war_20209358/files/audio.wav" as Source);
     }
   }
 
@@ -123,44 +146,51 @@ class _CreateEditVivenciaScreenState extends State<CreateEditVivenciaScreen> {
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
-          children: [
-            TextFormField(
-              controller: titleController,
-              decoration: InputDecoration(labelText: 'Título'),
-            ),
-            TextFormField(
-              controller: descriptionController,
-              decoration: InputDecoration(labelText: 'Descripción'),
-            ),
-            // Campo para subir o tomar una foto
-            ElevatedButton(
-              onPressed: () async {
-                final ImagePicker _picker = ImagePicker();
-                final XFile? image = await _picker.pickImage(source: ImageSource.gallery); // Puedes usar también ImageSource.camera para tomar una foto
-                if (image != null) {
-                  // Aquí puedes guardar la ruta de la imagen en la base de datos o realizar otras operaciones
-                  fotoController.text = image.path; // Guarda la ruta de la imagen en el controlador
-                }
-              },
-              child: Text('Subir/Tomar Foto'),
-            ),
-            // Campo para grabar audio
-            IconButton(
-              icon: Icon(Icons.mic),
-              onPressed: () async {
-                final recorder = AudioRecorder();
-                String path = await recorder.startRecording();
-                // Aquí puedes guardar la ruta del audio en la base de datos o realizar otras operaciones
-                audioController.text = path; // Guarda la ruta del audio en el controlador
-              },
-            ),
-            // Botones para guardar la vivencia o cargar la foto/audio
-            ElevatedButton(
-              onPressed: () {
-                // Lógica para guardar la vivencia
-              },
-              child: Text('Guardar Vivencia'),
-            ),Agregar botones para guardar la vivencia
+            children: [
+              TextFormField(
+                controller: titleController,
+                decoration: InputDecoration(labelText: 'Título'),
+              ),
+              TextFormField(
+                controller: descriptionController,
+                decoration: InputDecoration(labelText: 'Descripción'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  final image = await _picker.pickImage(source: ImageSource.gallery);
+                  if (image != null) {
+                    setState(() {
+                      _imagePath = image.path; // Guarda la ruta de la imagen en la variable
+                    });
+                  }
+                },
+                child: Text('Subir/Tomar Foto'),
+              ),
+              ElevatedButton(
+                onPressed: _startRecording,
+                child: Text('Iniciar Grabación de Audio'),
+              ),
+              ElevatedButton(
+                onPressed: _stopRecording,
+                child: Text('Detener Grabación de Audio'),
+              ),
+              ElevatedButton(
+                onPressed: _playAudio,
+                child: Text('Reproducir Audio'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  create(
+                    Vivencia(
+                      title: titleController.text, 
+                      date: DateTime.now(), 
+                      description: descriptionController.text,  
+                      photoUrl: _imagePath, 
+                      audioUrl: _audioPath)
+                  );
+                },
+                child: Text('Guardar Vivencia'),
+              ),
             ],
           ),
         ),
@@ -168,4 +198,3 @@ class _CreateEditVivenciaScreenState extends State<CreateEditVivenciaScreen> {
     );
   }
 }
-
