@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "214137422356",
+    "project_id": "war20212021-e4f39",
+    "storage_bucket": "war20212021-e4f39.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:214137422356:android:57272664a136c604b9dd01",
+        "android_client_info": {
+          "package_name": "com.example.war_20212021"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAIY8TvfKIrtfEvvmkdRPn_zPX0CerpFH8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
